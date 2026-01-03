@@ -17,10 +17,7 @@ declare global {
             client_id: string;
             callback: (response: { credential: string }) => void;
           }) => void;
-          renderButton: (
-            element: HTMLElement,
-            config: { theme: string; size: string; width: number }
-          ) => void;
+          prompt: () => void;
         };
       };
     };
@@ -37,7 +34,8 @@ export default function RegisterPage() {
   const [error, setError] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [googleClientId, setGoogleClientId] = React.useState<string | null>(null);
-  const googleButtonRef = React.useRef<HTMLDivElement>(null);
+  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
+  const [googleScriptLoaded, setGoogleScriptLoaded] = React.useState(false);
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -46,7 +44,7 @@ export default function RegisterPage() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  // Load Google OAuth
+  // Load Google OAuth config
   React.useEffect(() => {
     async function loadGoogleConfig() {
       try {
@@ -64,36 +62,32 @@ export default function RegisterPage() {
     loadGoogleConfig();
   }, []);
 
-  // Initialize Google Sign-In
+  // Load Google Sign-In script
   React.useEffect(() => {
-    if (!googleClientId || !googleButtonRef.current) return;
+    if (!googleClientId) return;
 
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
     script.onload = () => {
+      setGoogleScriptLoaded(true);
       window.google?.accounts.id.initialize({
         client_id: googleClientId,
         callback: handleGoogleCallback,
       });
-      if (googleButtonRef.current) {
-        window.google?.accounts.id.renderButton(googleButtonRef.current, {
-          theme: "outline",
-          size: "large",
-          width: 320,
-        });
-      }
     };
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, [googleClientId]);
 
   const handleGoogleCallback = async (response: { credential: string }) => {
-    setIsSubmitting(true);
+    setIsGoogleLoading(true);
     setError("");
     const result = await googleLogin(response.credential);
     if (result.success) {
@@ -101,7 +95,22 @@ export default function RegisterPage() {
     } else {
       setError(result.error || "Google signup failed");
     }
-    setIsSubmitting(false);
+    setIsGoogleLoading(false);
+  };
+
+  const handleGoogleClick = () => {
+    if (!googleClientId) {
+      setError("Google Sign-In is not configured. Please contact support or use email/password.");
+      return;
+    }
+    if (googleScriptLoaded && window.google) {
+      setIsGoogleLoading(true);
+      window.google.accounts.id.prompt();
+      // Reset loading state after a delay in case user cancels
+      setTimeout(() => setIsGoogleLoading(false), 5000);
+    } else {
+      setError("Google Sign-In is loading. Please try again.");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,21 +169,32 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {googleClientId && (
-            <>
-              <div ref={googleButtonRef} className="flex justify-center" />
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-[var(--border)]" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-[var(--background)] px-2 text-[var(--muted-foreground)]">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-            </>
-          )}
+          {/* Google Sign-In Button */}
+          <button
+            type="button"
+            onClick={handleGoogleClick}
+            disabled={isGoogleLoading || isSubmitting}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-[var(--border)] rounded-lg bg-white text-gray-900 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+              <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18l-2.909-2.26c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+              <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+              <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.002 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+            </svg>
+            {isGoogleLoading ? "Signing up..." : "Continue with Google"}
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-[var(--border)]" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-[var(--background)] px-2 text-[var(--muted-foreground)]">
+                Or continue with email
+              </span>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">

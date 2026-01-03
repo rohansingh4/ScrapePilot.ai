@@ -65,7 +65,7 @@ function Crystal() {
                 meshRef.current.rotation.y = state.clock.getElapsedTime() * 0.2;
                 meshRef.current.rotation.x = Math.sin(state.clock.getElapsedTime() * 0.3) * 0.1;
             }
-            if (materialRef.current) {
+            if (materialRef.current?.uniforms?.uTime) {
                 materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
             }
         }
@@ -75,6 +75,7 @@ function Crystal() {
         "Crystal.useMemo[geometry]": ()=>{
             const geo = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$bun$2f$three$40$0$2e$182$2e$0$2f$node_modules$2f$three$2f$build$2f$three$2e$core$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["IcosahedronGeometry"](1.5, 1);
             const positions = geo.attributes.position;
+            if (!positions) return geo;
             for(let i = 0; i < positions.count; i++){
                 const x = positions.getX(i);
                 const y = positions.getY(i);
@@ -101,12 +102,12 @@ function Crystal() {
             }
         }, void 0, false, {
             fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-            lineNumber: 88,
+            lineNumber: 90,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-        lineNumber: 87,
+        lineNumber: 89,
         columnNumber: 5
     }, this);
 }
@@ -155,12 +156,12 @@ function Particles() {
             sizeAttenuation: true
         }, void 0, false, {
             fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-            lineNumber: 131,
+            lineNumber: 133,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-        lineNumber: 130,
+        lineNumber: 132,
         columnNumber: 5
     }, this);
 }
@@ -177,7 +178,7 @@ function Scene() {
                 intensity: 0.3
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-                lineNumber: 145,
+                lineNumber: 147,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$bun$2f$next$40$16$2e$1$2e$1$2b$df4bf79bce1f90fc$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("pointLight", {
@@ -190,7 +191,7 @@ function Scene() {
                 color: "#ec4899"
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-                lineNumber: 146,
+                lineNumber: 148,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$bun$2f$next$40$16$2e$1$2e$1$2b$df4bf79bce1f90fc$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("pointLight", {
@@ -203,17 +204,17 @@ function Scene() {
                 color: "#8b5cf6"
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-                lineNumber: 147,
+                lineNumber: 149,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$bun$2f$next$40$16$2e$1$2e$1$2b$df4bf79bce1f90fc$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Crystal, {}, void 0, false, {
                 fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-                lineNumber: 148,
+                lineNumber: 150,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$bun$2f$next$40$16$2e$1$2e$1$2b$df4bf79bce1f90fc$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Particles, {}, void 0, false, {
                 fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-                lineNumber: 149,
+                lineNumber: 151,
                 columnNumber: 7
             }, this)
         ]
@@ -231,7 +232,7 @@ function CrystalAnimation() {
     if (!mounted) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$bun$2f$next$40$16$2e$1$2e$1$2b$df4bf79bce1f90fc$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(CrystalFallback, {}, void 0, false, {
             fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-            lineNumber: 162,
+            lineNumber: 164,
             columnNumber: 12
         }, this);
     }
@@ -260,12 +261,12 @@ function CrystalAnimation() {
                 },
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$bun$2f$next$40$16$2e$1$2e$1$2b$df4bf79bce1f90fc$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Scene, {}, void 0, false, {
                     fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-                    lineNumber: 173,
+                    lineNumber: 175,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-                lineNumber: 167,
+                lineNumber: 169,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$bun$2f$next$40$16$2e$1$2e$1$2b$df4bf79bce1f90fc$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -275,13 +276,13 @@ function CrystalAnimation() {
                 }
             }, void 0, false, {
                 fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-                lineNumber: 176,
+                lineNumber: 178,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-        lineNumber: 166,
+        lineNumber: 168,
         columnNumber: 5
     }, this);
 }
@@ -298,12 +299,12 @@ function CrystalFallback() {
             }
         }, void 0, false, {
             fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-            lineNumber: 190,
+            lineNumber: 192,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/apps/web/src/components/3d/crystal-animation.tsx",
-        lineNumber: 189,
+        lineNumber: 191,
         columnNumber: 5
     }, this);
 }
