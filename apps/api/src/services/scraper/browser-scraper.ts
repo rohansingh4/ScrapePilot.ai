@@ -1,4 +1,4 @@
-import { chromium, Browser, Page } from 'playwright';
+import { chromium, type Browser, type Page } from 'playwright';
 import * as cheerio from 'cheerio';
 import type { JobConfig, PageMetadata, WaitFor } from '@scrapepilot/shared';
 import { logger } from '../../utils/logger.js';

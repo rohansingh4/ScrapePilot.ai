@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
-    "build": "bun build ./src/index.ts --outdir ./dist --target bun",
-    "start": "bun dist/index.js",
+    "build": "tsc",
+    "start": "bun src/index.ts",
     "worker": "bun --watch src/workers/scrape.worker.ts",
     "worker:start": "bun src/workers/scrape.worker.ts",
     "lint": "eslint src --ext .ts",

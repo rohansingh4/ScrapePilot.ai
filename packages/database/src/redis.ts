@@ -1,10 +1,10 @@
-import Redis from 'ioredis';
+import Redis, { type RedisOptions } from 'ioredis';
 
 let redisClient: Redis | null = null;
 
 export interface RedisConfig {
   url: string;
-  options?: Redis.RedisOptions;
+  options?: RedisOptions;
 }
 
 export function getRedisClient(config?: RedisConfig): Redis {

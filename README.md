@@ -1,6 +1,12 @@
 # ScrapePilot.ai
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-1.3-orange.svg)](https://bun.sh/)
+
 Intelligent web scraping API that transforms any URL into structured data. Built with modern technologies for speed, reliability, and ease of use.
+
+> **[Documentation](docs/api.md)** | **[Architecture](docs/architecture.md)** | **[Contributing](CONTRIBUTING.md)**
 
 ## Features
 
@@ -11,6 +17,8 @@ Intelligent web scraping API that transforms any URL into structured data. Built
 - **Rate Limiting** - Built-in rate limiting per user
 - **API Key Management** - Secure API key authentication
 - **Credit System** - Usage-based credit system with plans
+- **Google OAuth** - Sign in with Google for easy authentication
+- **Modern Dashboard** - Beautiful React dashboard with real-time scraping
 
 ## Tech Stack
 
@@ -151,8 +159,46 @@ See [.env.example](.env.example) for all available configuration options.
 
 ### Optional
 - `OPENAI_API_KEY` - For AI extraction feature
+- `GOOGLE_CLIENT_ID` - For Google OAuth sign-in
+- `GOOGLE_CLIENT_SECRET` - For Google OAuth
 - `STRIPE_*` - For payment integration
 - `SENTRY_DSN` - For error tracking
+
+## Google OAuth Setup
+
+To enable Google Sign-In:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Go to **APIs & Services > Credentials**
+4. Click **Create Credentials > OAuth client ID**
+5. Select **Web application**
+6. Add authorized origins:
+   - `http://localhost:3000` (development)
+   - `https://your-domain.com` (production)
+7. Copy the Client ID and Client Secret to your `.env`:
+   ```env
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   ```
+
+## Quick API Example
+
+```bash
+# Register a user
+curl -X POST http://localhost:3001/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","name":"Your Name","password":"password123"}'
+
+# Scrape a URL (use the token from registration response)
+curl -X POST http://localhost:3001/v1/scrape \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","renderMode":"http"}'
+```
+
+See [API Documentation](docs/api.md) for full endpoint reference.
 
 ## Contributing
 

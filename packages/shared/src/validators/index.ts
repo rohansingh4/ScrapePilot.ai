@@ -19,9 +19,14 @@ export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 });
 
+export const googleAuthSchema = z.object({
+  credential: z.string().min(1, 'Google credential is required'),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;
 
 // ===========================================
 // Scrape Validators

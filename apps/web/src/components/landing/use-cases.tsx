@@ -144,10 +144,10 @@ export function UseCases() {
                           className="text-2xl font-bold"
                           style={{ color: colors.accent }}
                         >
-                          {useCase.stats[0].split(" ")[0]}
+                          {useCase.stats[0]?.split(" ")[0]}
                         </div>
                         <div className="text-xs text-[var(--muted-foreground)] uppercase">
-                          {useCase.stats[0].split(" ").slice(1).join(" ")}
+                          {useCase.stats[0]?.split(" ").slice(1).join(" ")}
                         </div>
                       </div>
                     </div>

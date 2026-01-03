@@ -1,10 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import type { Plan } from '@scrapepilot/shared';
 
+export type AuthProvider = 'email' | 'google';
+
 export interface IUser extends Document {
   email: string;
   name: string;
-  passwordHash: string;
+  passwordHash?: string;
+  authProvider: AuthProvider;
+  googleId?: string;
+  avatarUrl?: string;
   plan: Plan;
   credits: number;
   creditsResetAt: Date;
@@ -31,7 +36,20 @@ const userSchema = new Schema<IUser>(
     },
     passwordHash: {
       type: String,
-      required: true,
+      required: false,
+    },
+    authProvider: {
+      type: String,
+      enum: ['email', 'google'],
+      default: 'email',
+    },
+    googleId: {
+      type: String,
+      sparse: true,
+      index: true,
+    },
+    avatarUrl: {
+      type: String,
     },
     plan: {
       type: String,

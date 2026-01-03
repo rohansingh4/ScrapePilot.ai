@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { registerSchema, loginSchema, refreshTokenSchema } from '@scrapepilot/shared';
+import { registerSchema, loginSchema, refreshTokenSchema, googleAuthSchema } from '@scrapepilot/shared';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import * as authService from '../services/auth.service.js';
+import { config } from '../config/index.js';
 
 const auth = new Hono();
 
@@ -49,6 +50,40 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
         rateLimit: user.rateLimit,
       },
       tokens,
+    },
+  });
+});
+
+// POST /auth/google - Google OAuth
+auth.post('/google', zValidator('json', googleAuthSchema), async (c) => {
+  const body = c.req.valid('json');
+  const { user, tokens } = await authService.googleAuth(body);
+
+  return c.json({
+    success: true,
+    data: {
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        plan: user.plan,
+        credits: user.credits,
+        creditsResetAt: user.creditsResetAt,
+        rateLimit: user.rateLimit,
+      },
+      tokens,
+    },
+  });
+});
+
+// GET /auth/google/config - Get Google OAuth client ID
+auth.get('/google/config', async (c) => {
+  return c.json({
+    success: true,
+    data: {
+      clientId: config.GOOGLE_CLIENT_ID || null,
+      enabled: !!config.GOOGLE_CLIENT_ID,
     },
   });
 });

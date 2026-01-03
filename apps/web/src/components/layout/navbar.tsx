@@ -2,13 +2,17 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NAV_LINKS, SITE_CONFIG } from "@/lib/constants";
+import { useAuth } from "@/contexts/auth-context";
 
 export function Navbar() {
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
@@ -20,6 +24,11 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
 
   return (
     <header
@@ -53,15 +62,31 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/sign-in"
-              className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-            >
-              Sign in
-            </Link>
-            <Button asChild size="sm">
-              <Link href="/sign-up">Get started</Link>
-            </Button>
+            {isLoading ? (
+              <div className="h-8 w-20 bg-[var(--muted)]/20 rounded animate-pulse" />
+            ) : isAuthenticated && user ? (
+              <>
+                <span className="text-sm text-[var(--muted-foreground)]">{user.name}</span>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+                <Button size="sm" variant="ghost" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Button asChild size="sm">
+                  <Link href="/register">Get started</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -101,18 +126,42 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="pt-4 border-t border-[var(--border)] flex flex-col gap-3">
-                <Link
-                  href="/sign-in"
-                  className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Sign in
-                </Link>
-                <Button asChild size="sm" className="w-full">
-                  <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)}>
-                    Get started
-                  </Link>
-                </Button>
+                {isAuthenticated && user ? (
+                  <>
+                    <span className="text-sm text-[var(--muted-foreground)]">{user.name}</span>
+                    <Button asChild size="sm" className="w-full">
+                      <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                        Dashboard
+                      </Link>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Sign in
+                    </Link>
+                    <Button asChild size="sm" className="w-full">
+                      <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                        Get started
+                      </Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

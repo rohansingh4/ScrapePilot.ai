@@ -97,7 +97,7 @@ export default function PricingPage() {
                     variant={plan.highlighted ? "primary" : "secondary"}
                     className="w-full"
                   >
-                    <Link href="/sign-up">
+                    <Link href="/register">
                       {plan.cta}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>

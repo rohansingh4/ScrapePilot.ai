@@ -17,6 +17,10 @@ const envSchema = z.object({
   // OpenAI (optional)
   OPENAI_API_KEY: z.string().optional(),
 
+  // Google OAuth (optional)
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+
   // Worker
   WORKER_CONCURRENCY: z.coerce.number().default(3),
   SCRAPE_TIMEOUT: z.coerce.number().default(30000),

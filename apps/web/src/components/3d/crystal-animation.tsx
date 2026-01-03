@@ -53,7 +53,7 @@ function Crystal() {
       meshRef.current.rotation.y = state.clock.getElapsedTime() * 0.2;
       meshRef.current.rotation.x = Math.sin(state.clock.getElapsedTime() * 0.3) * 0.1;
     }
-    if (materialRef.current) {
+    if (materialRef.current?.uniforms?.uTime) {
       materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
     }
   });
@@ -61,7 +61,9 @@ function Crystal() {
   // Create spiky sphere geometry
   const geometry = React.useMemo(() => {
     const geo = new THREE.IcosahedronGeometry(1.5, 1);
-    const positions = geo.attributes.position;
+    const positions = geo.attributes.position as THREE.BufferAttribute;
+
+    if (!positions) return geo;
 
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i);
