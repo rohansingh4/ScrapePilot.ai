@@ -60,13 +60,42 @@ export const errorHandler: ErrorHandler = (err, c) => {
     );
   }
 
-  // Default error
+  // Playwright/Browser errors
+  if (err.message?.includes('Browser') || err.message?.includes('playwright') || err.message?.includes('Chromium')) {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: 'BROWSER_ERROR',
+          message: err.message || 'Browser scraping failed',
+        },
+      },
+      500
+    );
+  }
+
+  // Navigation/scraping errors
+  if (err.message?.includes('Failed to load page') || err.message?.includes('Navigation')) {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: 'SCRAPE_ERROR',
+          message: err.message || 'Failed to scrape page',
+        },
+      },
+      500
+    );
+  }
+
+  // Default error - include message in development
+  const isDev = process.env.NODE_ENV === 'development';
   return c.json(
     {
       success: false,
       error: {
         code: 'INTERNAL_ERROR',
-        message: 'Internal server error',
+        message: isDev && err.message ? err.message : 'Internal server error',
       },
     },
     500

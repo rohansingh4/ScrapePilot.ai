@@ -51,7 +51,13 @@ export async function browserScrape(
   logger.debug({ url }, 'Starting browser scrape');
 
   try {
-    const browserInstance = await getBrowser();
+    let browserInstance: Browser;
+    try {
+      browserInstance = await getBrowser();
+    } catch (browserError) {
+      logger.error({ error: browserError }, 'Failed to launch browser. Make sure Playwright browsers are installed: bunx playwright install chromium');
+      throw new Error('Browser launch failed. Run: bunx playwright install chromium');
+    }
     page = await browserInstance.newPage();
 
     // Set user agent
@@ -85,10 +91,17 @@ export async function browserScrape(
       }
     });
 
-    await page.goto(url, {
-      waitUntil: mapWaitUntil(config.waitFor || 'load'),
-      timeout: config.timeout || 30000,
-    });
+    try {
+      // Use 'domcontentloaded' as default - faster and more reliable than 'networkidle'
+      const waitStrategy = config.waitFor || 'domcontentloaded';
+      await page.goto(url, {
+        waitUntil: mapWaitUntil(waitStrategy),
+        timeout: config.timeout || 30000,
+      });
+    } catch (navError) {
+      logger.error({ error: navError, url }, 'Page navigation failed');
+      throw new Error(`Failed to load page: ${navError instanceof Error ? navError.message : 'Unknown error'}`);
+    }
 
     // Wait for specific selector if provided
     if (config.waitForSelector) {

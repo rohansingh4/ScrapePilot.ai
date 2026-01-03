@@ -44,7 +44,7 @@ export default function DashboardPage() {
       const params: ScrapeParams = {
         url,
         renderMode,
-        waitFor: renderMode === "browser" ? "networkidle" : "load",
+        waitFor: renderMode === "browser" ? "domcontentloaded" : "load",
         timeout: 30000,
       };
 

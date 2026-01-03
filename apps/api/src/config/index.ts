@@ -14,8 +14,12 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 
-  // OpenAI (optional)
+  // AI Provider (optional)
+  AI_PROVIDER: z.enum(['openai', 'groq', 'ollama']).default('openai'),
   OPENAI_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
+  OLLAMA_URL: z.string().default('http://localhost:11434'),
+  OLLAMA_MODEL: z.string().default('llama3.2'),
 
   // Google OAuth (optional)
   GOOGLE_CLIENT_ID: z.string().optional(),
