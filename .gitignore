@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# turborepo
+.turbo
+
+# build outputs
+dist/
+
+# bun
+bun.lockb
+
+# storage
+storage/
+
+# env files (but allow example)
+!.env.example
