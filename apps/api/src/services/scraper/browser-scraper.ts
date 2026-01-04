@@ -1,6 +1,6 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import * as cheerio from 'cheerio';
-import type { JobConfig, PageMetadata, WaitFor } from '@scrapepilot/shared';
+import type { JobConfig, PageMetadata, WaitFor, BrowserAction } from '@scrapepilot/shared';
 import { logger } from '../../utils/logger.js';
 
 let browser: Browser | null = null;
@@ -18,6 +18,14 @@ export interface BrowserScrapeResult {
   size: number;
   screenshot?: string;
   pdf?: string;
+  actionResults?: ActionResult[];
+}
+
+export interface ActionResult {
+  action: string;
+  success: boolean;
+  error?: string;
+  data?: unknown;
 }
 
 async function getBrowser(): Promise<Browser> {
@@ -41,6 +49,111 @@ function mapWaitUntil(waitFor: WaitFor): 'load' | 'domcontentloaded' | 'networki
   return waitFor;
 }
 
+// Execute browser automation actions
+async function executeActions(page: Page, actions: BrowserAction[]): Promise<ActionResult[]> {
+  const results: ActionResult[] = [];
+
+  for (const action of actions) {
+    try {
+      logger.debug({ action }, 'Executing browser action');
+
+      switch (action.type) {
+        case 'click': {
+          await page.click(action.selector);
+          if (action.waitAfter) {
+            await page.waitForTimeout(action.waitAfter);
+          }
+          results.push({ action: `click: ${action.selector}`, success: true });
+          break;
+        }
+
+        case 'scroll': {
+          if (action.direction === 'bottom') {
+            await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+          } else if (action.direction === 'top') {
+            await page.evaluate(() => window.scrollTo(0, 0));
+          } else if (action.direction === 'down') {
+            const amount = action.amount || 500;
+            await page.evaluate((px) => window.scrollBy(0, px), amount);
+          } else if (action.direction === 'up') {
+            const amount = action.amount || 500;
+            await page.evaluate((px) => window.scrollBy(0, -px), amount);
+          }
+          if (action.waitAfter) {
+            await page.waitForTimeout(action.waitAfter);
+          }
+          results.push({ action: `scroll: ${action.direction}`, success: true });
+          break;
+        }
+
+        case 'fill': {
+          await page.fill(action.selector, action.value);
+          if (action.waitAfter) {
+            await page.waitForTimeout(action.waitAfter);
+          }
+          results.push({ action: `fill: ${action.selector}`, success: true });
+          break;
+        }
+
+        case 'execute': {
+          const scriptResult = await page.evaluate(action.script);
+          if (action.waitAfter) {
+            await page.waitForTimeout(action.waitAfter);
+          }
+          results.push({ action: 'execute script', success: true, data: scriptResult });
+          break;
+        }
+
+        case 'wait': {
+          if (action.selector) {
+            await page.waitForSelector(action.selector, { timeout: action.timeout || 10000 });
+          } else {
+            await page.waitForTimeout(action.timeout || 1000);
+          }
+          results.push({ action: `wait: ${action.selector || action.timeout + 'ms'}`, success: true });
+          break;
+        }
+
+        case 'screenshot': {
+          // Screenshot action is handled separately, just mark as success
+          results.push({ action: 'screenshot', success: true });
+          break;
+        }
+
+        default:
+          results.push({ action: 'unknown', success: false, error: 'Unknown action type' });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error({ error, action }, 'Action execution failed');
+      results.push({ action: action.type, success: false, error: errorMessage });
+    }
+  }
+
+  return results;
+}
+
+// Infinite scroll helper - keeps scrolling until no new content loads
+export async function infiniteScroll(page: Page, maxScrolls: number = 10, waitTime: number = 1000): Promise<number> {
+  let previousHeight = 0;
+  let scrollCount = 0;
+
+  while (scrollCount < maxScrolls) {
+    const currentHeight = await page.evaluate(() => document.body.scrollHeight);
+
+    if (currentHeight === previousHeight) {
+      break; // No new content loaded
+    }
+
+    previousHeight = currentHeight;
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(waitTime);
+    scrollCount++;
+  }
+
+  return scrollCount;
+}
+
 export async function browserScrape(
   url: string,
   config: Partial<JobConfig>
@@ -60,9 +173,10 @@ export async function browserScrape(
     }
     page = await browserInstance.newPage();
 
-    // Set user agent
+    // Set realistic user agent
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'en-US,en;q=0.9',
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       ...config.headers,
     });
 
@@ -108,6 +222,13 @@ export async function browserScrape(
       await page.waitForSelector(config.waitForSelector, {
         timeout: config.timeout || 30000,
       });
+    }
+
+    // Execute browser actions if provided
+    let actionResults: ActionResult[] | undefined;
+    if (config.actions && config.actions.length > 0) {
+      logger.info({ actionCount: config.actions.length }, 'Executing browser actions');
+      actionResults = await executeActions(page, config.actions);
     }
 
     const loadTime = Date.now() - startTime;
@@ -169,7 +290,7 @@ export async function browserScrape(
     }
 
     logger.debug(
-      { url, loadTime, renderTime, size: html.length },
+      { url, loadTime, renderTime, size: html.length, actionsExecuted: actionResults?.length || 0 },
       'Browser scrape completed'
     );
 
@@ -186,6 +307,7 @@ export async function browserScrape(
       size: html.length,
       screenshot,
       pdf,
+      actionResults,
     };
   } finally {
     if (page) {

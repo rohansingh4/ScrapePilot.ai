@@ -81,6 +81,49 @@ export interface Cookie {
   domain?: string;
 }
 
+// Browser Action Types
+export type BrowserActionType = 'click' | 'scroll' | 'fill' | 'execute' | 'wait' | 'screenshot';
+
+export interface ClickAction {
+  type: 'click';
+  selector: string;
+  waitAfter?: number;
+}
+
+export interface ScrollAction {
+  type: 'scroll';
+  direction: 'top' | 'bottom' | 'up' | 'down';
+  amount?: number;
+  waitAfter?: number;
+}
+
+export interface FillAction {
+  type: 'fill';
+  selector: string;
+  value: string;
+  waitAfter?: number;
+}
+
+export interface ExecuteAction {
+  type: 'execute';
+  script: string;
+  waitAfter?: number;
+}
+
+export interface WaitAction {
+  type: 'wait';
+  selector?: string;
+  timeout?: number;
+}
+
+export interface ScreenshotAction {
+  type: 'screenshot';
+  selector?: string;
+  fullPage?: boolean;
+}
+
+export type BrowserAction = ClickAction | ScrollAction | FillAction | ExecuteAction | WaitAction | ScreenshotAction;
+
 export interface JobConfig {
   renderMode: RenderMode;
   waitFor: WaitFor;
@@ -89,6 +132,9 @@ export interface JobConfig {
   screenshot: boolean;
   pdf: boolean;
   extractSchema?: Record<string, unknown>;
+  extractPrompt?: string; // AI natural language extraction
+  actions?: BrowserAction[]; // Browser automation actions
+  exportFormat?: 'json' | 'csv' | 'markdown';
   headers?: Record<string, string>;
   cookies?: Cookie[];
 }

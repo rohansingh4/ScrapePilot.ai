@@ -160,6 +160,43 @@ class ApiClient {
             body: params
         });
     }
+    // AI-powered extraction
+    async extract(params) {
+        return this.request('/v1/scrape/extract', {
+            method: 'POST',
+            body: params
+        });
+    }
+    // Auto-detect extractable data
+    async detect(url, renderMode = 'http') {
+        return this.request('/v1/scrape/detect', {
+            method: 'POST',
+            body: {
+                url,
+                renderMode
+            }
+        });
+    }
+    // Get AI provider status
+    async getAIStatus() {
+        return this.request('/v1/scrape/ai/status');
+    }
+    // Export scrape data
+    async exportData(params, format) {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/v1/scrape/export/${format}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.accessToken}`
+            },
+            body: JSON.stringify(params)
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || 'Export failed');
+        }
+        return response.blob();
+    }
     async getJob(jobId) {
         return this.request(`/v1/jobs/${jobId}`);
     }

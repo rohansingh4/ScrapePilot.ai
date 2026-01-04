@@ -199,6 +199,58 @@ class ApiClient {
     });
   }
 
+  // AI-powered extraction
+  async extract(params: ScrapeParams & { extractPrompt: string }) {
+    return this.request<{
+      url: string;
+      finalUrl: string;
+      extracted: unknown;
+      format: string;
+      confidence: number;
+      metadata: ScrapeResult['metadata'];
+      metrics: ScrapeResult['metrics'];
+    }>('/v1/scrape/extract', {
+      method: 'POST',
+      body: params,
+    });
+  }
+
+  // Auto-detect extractable data
+  async detect(url: string, renderMode: 'http' | 'browser' = 'http') {
+    return this.request<DetectResult>('/v1/scrape/detect', {
+      method: 'POST',
+      body: { url, renderMode },
+    });
+  }
+
+  // Get AI provider status
+  async getAIStatus() {
+    return this.request<{
+      provider: string;
+      configured: boolean;
+      model: string;
+    }>('/v1/scrape/ai/status');
+  }
+
+  // Export scrape data
+  async exportData(params: ScrapeParams, format: 'json' | 'csv' | 'markdown') {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/v1/scrape/export/${format}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.accessToken}`,
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Export failed');
+    }
+
+    return response.blob();
+  }
+
   async getJob(jobId: string) {
     return this.request<{ job: ScrapeJob }>(`/v1/jobs/${jobId}`);
   }
@@ -245,7 +297,10 @@ export interface ScrapeResult {
   statusCode: number;
   html: string;
   text: string;
+  markdown?: string;
   data?: unknown;
+  aiExtraction?: AIExtraction;
+  actionResults?: ActionResult[];
   screenshot?: string;
   pdf?: string;
   metadata: {
@@ -263,6 +318,17 @@ export interface ScrapeResult {
   };
 }
 
+export interface DetectResult {
+  url: string;
+  title: string;
+  suggestions: ExtractSuggestion[];
+  aiProvider: {
+    provider: string;
+    configured: boolean;
+    model: string;
+  };
+}
+
 // Types
 export interface User {
   id: string;
@@ -275,6 +341,15 @@ export interface User {
   rateLimit: number;
 }
 
+// Browser action types
+export type BrowserAction =
+  | { type: 'click'; selector: string; waitAfter?: number }
+  | { type: 'scroll'; direction: 'top' | 'bottom' | 'up' | 'down'; amount?: number; waitAfter?: number }
+  | { type: 'fill'; selector: string; value: string; waitAfter?: number }
+  | { type: 'execute'; script: string; waitAfter?: number }
+  | { type: 'wait'; selector?: string; timeout?: number }
+  | { type: 'screenshot'; selector?: string; fullPage?: boolean };
+
 export interface ScrapeParams {
   url: string;
   renderMode?: 'http' | 'browser';
@@ -284,7 +359,32 @@ export interface ScrapeParams {
   screenshot?: boolean;
   pdf?: boolean;
   extractSchema?: Record<string, unknown>;
+  extractPrompt?: string; // AI natural language extraction
+  actions?: BrowserAction[]; // Browser automation actions
+  exportFormat?: 'json' | 'csv' | 'markdown';
   headers?: Record<string, string>;
+}
+
+export interface AIExtraction {
+  data: unknown;
+  format: 'array' | 'object' | 'text';
+  confidence: number;
+}
+
+export interface ExtractSuggestion {
+  name: string;
+  description: string;
+  type: 'list' | 'single' | 'table';
+  fields: string[];
+  confidence: number;
+  prompt: string;
+}
+
+export interface ActionResult {
+  action: string;
+  success: boolean;
+  error?: string;
+  data?: unknown;
 }
 
 export interface ScrapeJob {

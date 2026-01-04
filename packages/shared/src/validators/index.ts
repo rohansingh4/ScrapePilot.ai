@@ -38,6 +38,54 @@ export const cookieSchema = z.object({
   domain: z.string().optional(),
 });
 
+// Browser action schemas for automation
+export const clickActionSchema = z.object({
+  type: z.literal('click'),
+  selector: z.string(),
+  waitAfter: z.number().optional(), // ms to wait after click
+});
+
+export const scrollActionSchema = z.object({
+  type: z.literal('scroll'),
+  direction: z.enum(['top', 'bottom', 'up', 'down']).default('bottom'),
+  amount: z.number().optional(), // pixels, if not specified scrolls to end
+  waitAfter: z.number().optional(),
+});
+
+export const fillActionSchema = z.object({
+  type: z.literal('fill'),
+  selector: z.string(),
+  value: z.string(),
+  waitAfter: z.number().optional(),
+});
+
+export const executeActionSchema = z.object({
+  type: z.literal('execute'),
+  script: z.string(), // JavaScript to execute
+  waitAfter: z.number().optional(),
+});
+
+export const waitActionSchema = z.object({
+  type: z.literal('wait'),
+  selector: z.string().optional(),
+  timeout: z.number().optional(),
+});
+
+export const screenshotActionSchema = z.object({
+  type: z.literal('screenshot'),
+  selector: z.string().optional(), // screenshot specific element
+  fullPage: z.boolean().default(true),
+});
+
+export const browserActionSchema = z.discriminatedUnion('type', [
+  clickActionSchema,
+  scrollActionSchema,
+  fillActionSchema,
+  executeActionSchema,
+  waitActionSchema,
+  screenshotActionSchema,
+]);
+
 export const scrapeRequestSchema = z.object({
   url: z.string().url('Invalid URL format'),
   renderMode: z.enum(['http', 'browser']).default('http'),
@@ -46,12 +94,20 @@ export const scrapeRequestSchema = z.object({
   timeout: z.number().min(1000).max(60000).default(30000),
   screenshot: z.boolean().default(false),
   pdf: z.boolean().default(false),
+  // Schema-based extraction (structured)
   extractSchema: z.record(z.unknown()).optional(),
+  // NEW: AI natural language extraction prompt
+  extractPrompt: z.string().optional(), // e.g. "Get all product names and prices"
+  // NEW: Browser automation actions
+  actions: z.array(browserActionSchema).optional(),
+  // NEW: Export format preference
+  exportFormat: z.enum(['json', 'csv', 'markdown']).optional(),
   headers: z.record(z.string()).optional(),
   cookies: z.array(cookieSchema).optional(),
 });
 
 export type ScrapeInput = z.infer<typeof scrapeRequestSchema>;
+export type BrowserAction = z.infer<typeof browserActionSchema>;
 
 // ===========================================
 // Job Validators

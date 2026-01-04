@@ -161,6 +161,43 @@ class ApiClient {
             body: params
         });
     }
+    // AI-powered extraction
+    async extract(params) {
+        return this.request('/v1/scrape/extract', {
+            method: 'POST',
+            body: params
+        });
+    }
+    // Auto-detect extractable data
+    async detect(url, renderMode = 'http') {
+        return this.request('/v1/scrape/detect', {
+            method: 'POST',
+            body: {
+                url,
+                renderMode
+            }
+        });
+    }
+    // Get AI provider status
+    async getAIStatus() {
+        return this.request('/v1/scrape/ai/status');
+    }
+    // Export scrape data
+    async exportData(params, format) {
+        const response = await fetch(`${__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$bun$2f$next$40$16$2e$1$2e$1$2b$df4bf79bce1f90fc$2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/v1/scrape/export/${format}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.accessToken}`
+            },
+            body: JSON.stringify(params)
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || 'Export failed');
+        }
+        return response.blob();
+    }
     async getJob(jobId) {
         return this.request(`/v1/jobs/${jobId}`);
     }
